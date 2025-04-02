@@ -1,6 +1,7 @@
 using System;
 using NinjaVerse.Core;
-
+using NinjaVerse.Core.Timeline;
+using NinjaVerse.Core.Enums;
 namespace NinjaVerse.Core
 {
     public enum CivilizationEpoch

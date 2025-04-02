@@ -41,14 +41,21 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Simulators\CivilizationSimulator.cs" />
+    <Compile Include="Enums\CivilizationStage.cs" />
+    <Compile Include="Enums\CosmicFate.cs" />
+    <Compile Include="Enums\GovernmentType.cs" />
+    <Compile Include="Enums\SimType.cs" />
+    <Compile Include="Enums\SocialClass.cs" />
+    <Compile Include="Modules\CivilizationSimulator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SimEntity\SimEntity.cs" />
     <Compile Include="SimulationCore.cs" />
-    <Compile Include="Simulators\GalaxySimulator.cs" />
-    <Compile Include="Simulators\PlanetSimulator.cs" />
-    <Compile Include="Simulators\StarSystemSimulator.cs" />
-    <Compile Include="Simulators\UniverseSimulator.cs" />
-    <Compile Include="Simulators\SpeciesSimulator.cs" />
+    <Compile Include="Modules\GalaxySimulator.cs" />
+    <Compile Include="Modules\PlanetSimulator.cs" />
+    <Compile Include="Modules\StarSystemSimulator.cs" />
+    <Compile Include="Modules\UniverseSimulator.cs" />
+    <Compile Include="Modules\SpeciesSimulator.cs" />
+    <Compile Include="Timeline\TimelineData.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

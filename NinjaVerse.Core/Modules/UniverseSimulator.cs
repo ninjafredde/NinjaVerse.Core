@@ -1,4 +1,6 @@
 ﻿using NinjaVerse.Core;
+using NinjaVerse.Core.Enums;
+using NinjaVerse.Core.Timeline;
 using System;
 
 public class UniverseTraits

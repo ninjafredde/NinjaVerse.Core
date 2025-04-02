@@ -1,5 +1,6 @@
 ﻿using System;
-
+using NinjaVerse.Core.Enums;
+using NinjaVerse.Core.Timeline;
 namespace NinjaVerse.Core
 {
     public class StarSystemTraits

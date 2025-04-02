@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using NinjaVerse.Core.Enums;
+using NinjaVerse.Core.Timeline;
 
 namespace NinjaVerse.Core
 {

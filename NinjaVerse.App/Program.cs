@@ -1,5 +1,7 @@
 using System;
 using NinjaVerse.Core;
+using NinjaVerse.Core.Enums;
+using NinjaVerse.Core.Timeline;
 
 class Program
 {
