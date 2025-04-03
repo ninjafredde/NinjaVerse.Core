@@ -47,14 +47,17 @@
     <Compile Include="Enums\SimType.cs" />
     <Compile Include="Enums\SocialClass.cs" />
     <Compile Include="Modules\CivilizationSimulator.cs" />
+    <Compile Include="Modules\NPCFactory.cs" />
+    <Compile Include="Modules\NPCSimulator.cs" />
+    <Compile Include="Observer\ObserverContext.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SimEntity\SimEntity.cs" />
-    <Compile Include="SimulationCore.cs" />
     <Compile Include="Modules\GalaxySimulator.cs" />
     <Compile Include="Modules\PlanetSimulator.cs" />
     <Compile Include="Modules\StarSystemSimulator.cs" />
     <Compile Include="Modules\UniverseSimulator.cs" />
     <Compile Include="Modules\SpeciesSimulator.cs" />
+    <Compile Include="Observer\SimulationStore.cs" />
     <Compile Include="Timeline\TimelineData.cs" />
   </ItemGroup>
   <ItemGroup />

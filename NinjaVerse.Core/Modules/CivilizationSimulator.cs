@@ -1,7 +1,8 @@
 using System;
-using NinjaVerse.Core;
-using NinjaVerse.Core.Timeline;
+using System.Collections.Generic;
 using NinjaVerse.Core.Enums;
+using NinjaVerse.Core.Timeline;
+
 namespace NinjaVerse.Core
 {
     public enum CivilizationEpoch
@@ -32,12 +33,18 @@ namespace NinjaVerse.Core
             if (entity.Type != SimType.Civilization) return;
 
             CivilizationTraits traits;
-            if (!entity.Traits.TryGetValue("traits", out var raw) || !(raw is CivilizationTraits))
+            object raw;
+            if (!entity.Traits.TryGetValue("traits", out raw) || !(raw is CivilizationTraits))
             {
                 traits = new CivilizationTraits();
                 entity.Traits["traits"] = traits;
             }
-            else traits = (CivilizationTraits)raw;
+            else
+            {
+                traits = (CivilizationTraits)raw;
+            }
+
+            var rng = new Random(entity.Seed);
 
             for (int y = 0; y < years; y++)
             {
@@ -47,6 +54,30 @@ namespace NinjaVerse.Core
                 traits.Knowledge += 0.5f;
 
                 TryAdvanceEpoch(traits, entity);
+
+                // Trigger NPC generation after a threshold
+                if (traits.Age >= 50 && traits.Population >= 10000 && !entity.Traits.ContainsKey("npc_initialized"))
+                {
+                    var npcFactory = new NPCFactory();
+                    var npcList = new List<SimEntity>();
+
+                    for (int i = 0; i < 10; i++)
+                    {
+                        var npc = npcFactory.CreateNPC(entity.Seed + i);
+                        var npcSim = new NPCSimulator();
+                        npcSim.Simulate(npc, 10);
+                        npcList.Add(npc);
+                    }
+
+                    entity.Traits["npcs"] = npcList;
+                    entity.Traits["npc_initialized"] = true;
+
+                    entity.Timeline.Events.Add(new HistoricalEvent(
+                        TemporalResolutionEngine.CurrentYear + y,
+                        "Population Emergence",
+                        "NPC individuals have formed within the civilization."
+                    ));
+                }
             }
 
             entity.Timeline.Events.Add(new HistoricalEvent(
