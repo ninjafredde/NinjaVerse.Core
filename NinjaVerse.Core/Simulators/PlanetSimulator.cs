@@ -1,70 +1,107 @@
 ﻿using System;
+using NinjaVerse.Core;
+using NinjaVerse.Core.Enums;
+using NinjaVerse.Core.Models;
 
-namespace NinjaVerse.Core
+public class PlanetTraits
 {
-    public class PlanetTraits
+    public int Age = 0;
+    public float Temperature;   // °C
+    public float Gravity;       // Earth = 1.0
+    public bool HasWater;
+    public bool IsHabitable;
+    public bool LifeSeeded;
+}
+
+public class PlanetSimulator : ITemporalSimulator
+{
+    public override void Simulate(SimEntity planet, float normalizedAge)
     {
-        public int Age = 0;
-        public float Temperature;   // °C
-        public float Gravity;       // Earth = 1.0
-        public bool HasWater;
-        public bool IsHabitable;
-        public bool LifeSeeded;
+        if (planet.Type != SimType.Planet) return;
+
+        Random rng = new Random(planet.Seed);
+
+        // Simulate planetary traits
+        var traits = GetOrCreatePlanetTraits(planet);
+
+        // Simulate planetary events
+        string planetaryEvent = DeterminePlanetaryEvent(rng);
+        ApplyPlanetaryEvent(planet, traits, planetaryEvent, rng);
+
+        // Update habitability based on traits
+        traits.IsHabitable = traits.HasWater && traits.Temperature > -50 && traits.Temperature < 50;
+
+        // Log habitability changes
+        if (traits.IsHabitable && !planet.Traits.ContainsKey("habitable"))
+        {
+            planet.Traits["habitable"] = true;
+            planet.Timeline.Events.Add(new HistoricalEvent(
+                TemporalResolutionEngine.CurrentYear,
+                "Planet Habitable",
+                "The planet has become habitable."
+            ));
+        }
     }
 
-    public class PlanetSimulator : ITemporalSimulator
+    private PlanetTraits GetOrCreatePlanetTraits(SimEntity planet)
     {
-        public void Simulate(SimEntity entity, int years)
+        if (!planet.Traits.TryGetValue("planetTraits", out var rawTraits) || !(rawTraits is PlanetTraits traits))
         {
-            if (entity.Type != SimType.Planet)
-                return;
-
-            PlanetTraits traits;
-            object raw;
-            if (!entity.Traits.TryGetValue("traits", out raw) || !(raw is PlanetTraits))
+            traits = new PlanetTraits
             {
-                traits = GenerateInitialTraits(entity.Seed);
-                entity.Traits["traits"] = traits;
-            }
-            else
-            {
-                traits = (PlanetTraits)raw;
-            }
-
-            var rng = new Random(entity.Seed);
-
-            for (int y = 0; y < years; y++)
-            {
-                traits.Age++;
-
-                if (!traits.LifeSeeded && traits.IsHabitable && rng.NextDouble() < 0.01)
-                {
-                    traits.LifeSeeded = true;
-
-                    entity.Timeline.Events.Add(new HistoricalEvent(
-                        TemporalResolutionEngine.CurrentYear + y,
-                        "Life Begins",
-                        "Simple life has emerged on this planet."
-                    ));
-                }
-            }
+                Temperature = new Random(planet.Seed).Next(-100, 100),
+                Gravity = 1.0f,
+                HasWater = new Random(planet.Seed).NextDouble() > 0.5
+            };
+            planet.Traits["planetTraits"] = traits;
         }
+        return traits;
+    }
 
-        private PlanetTraits GenerateInitialTraits(int seed)
+    private string DeterminePlanetaryEvent(Random rng)
+    {
+        // Randomly determine a planetary event
+        double roll = rng.NextDouble();
+        if (roll < 0.1) return "Asteroid Impact"; // 10% chance
+        if (roll < 0.2) return "Black Hole Proximity"; // 10% chance
+        if (roll < 0.5) return "Environmental Stability"; // 30% chance
+        return "No Event"; // 50% chance
+    }
+
+    private void ApplyPlanetaryEvent(SimEntity planet, PlanetTraits traits, string planetaryEvent, Random rng)
+    {
+        switch (planetaryEvent)
         {
-            var rng = new Random(seed);
+            case "Asteroid Impact":
+                traits.Temperature -= 10; // Decrease temperature
+                planet.Timeline.Events.Add(new HistoricalEvent(
+                    TemporalResolutionEngine.CurrentYear,
+                    "Asteroid Impact",
+                    "A catastrophic asteroid hit the planet."
+                ));
+                break;
 
-            var traits = new PlanetTraits();
-            traits.Temperature = (float)(rng.NextDouble() * 150 - 50);  // -50°C to +100°C
-            traits.Gravity = (float)(rng.NextDouble() * 2.0);           // 0–2g
-            traits.HasWater = rng.NextDouble() < 0.6;
-            traits.IsHabitable = traits.HasWater &&
-                                 traits.Temperature > -10 &&
-                                 traits.Temperature < 50 &&
-                                 traits.Gravity > 0.5f &&
-                                 traits.Gravity < 1.5f;
+            case "Black Hole Proximity":
+                traits.Gravity += 0.1f; // Increase gravity
+                planet.Timeline.Events.Add(new HistoricalEvent(
+                    TemporalResolutionEngine.CurrentYear,
+                    "Black Hole Proximity",
+                    "The planet is near a black hole."
+                ));
+                break;
 
-            return traits;
+            case "Environmental Stability":
+                traits.Temperature += 5; // Increase temperature
+                planet.Timeline.Events.Add(new HistoricalEvent(
+                    TemporalResolutionEngine.CurrentYear,
+                    "Environmental Stability",
+                    "The planet's environment is stable."
+                ));
+                break;
+
+            case "No Event":
+                // No changes
+                break;
         }
     }
 }

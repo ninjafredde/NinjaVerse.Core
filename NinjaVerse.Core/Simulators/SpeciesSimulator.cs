@@ -1,90 +1,97 @@
 using System;
 using System.Collections.Generic;
+using NinjaVerse.Core;
+using NinjaVerse.Core.Enums;
+using NinjaVerse.Core.Models;
 
-namespace NinjaVerse.Core
+
+public class SpeciesTraits
 {
-    public enum SpeciesForm
-    {
-        CarbonBased, SiliconBased, EnergyBased, PlasmaEntity,
-        Crystalline, Insectoid, Amphibious, Synthetic, Unknown
-    }
+    public SpeciesForm Form;
+    public float Lifespan;
+    public float Cognition;        // Sentience threshold ≈ 1.0
+    public float Adaptability;
+    public float Sociality;
+    public float Resilience;
+    public float EvolutionScore;
+}
 
-    public class SpeciesTraits
+public class SpeciesSimulator : ITemporalSimulator
+{
+    public override void Simulate(SimEntity planet, float normalizedAge)
     {
-        public SpeciesForm Form;
-        public float Lifespan;
-        public float Cognition;        // Sentience threshold ≈ 1.0
-        public float Adaptability;
-        public float Sociality;
-        public float Resilience;
-        public float EvolutionScore;
-    }
+        if (planet.Type != SimType.Planet) return;
 
-    public class SpeciesSimulator : ITemporalSimulator
-    {
-        public void Simulate(SimEntity entity, int years)
+        Random rng = new Random(planet.Seed + TemporalResolutionEngine.CurrentYear); // Ensure randomness
+
+        // Check for species creation
+        if (planet.Traits.TryGetValue("habitable", out var isHabitable) && (bool)isHabitable)
         {
-            if (entity.Type != SimType.Planet) return;
-
-            SpeciesTraits species;
-            if (!entity.Traits.TryGetValue("species", out var raw) || !(raw is SpeciesTraits))
+            if (!planet.Traits.ContainsKey("species"))
             {
-                species = GenerateBaseSpecies(entity.Seed);
-                entity.Traits["species"] = species;
-            }
-            else species = (SpeciesTraits)raw;
-
-            Random rng = new Random(entity.Seed);
-
-            for (int y = 0; y < years; y++)
-            {
-                species.EvolutionScore += (float)(rng.NextDouble() * 0.01);
-                if (rng.NextDouble() < 0.0001)
-                    species.Cognition += (float)(rng.NextDouble() * 0.05f);
-
-                if (rng.NextDouble() > species.Resilience)
-                {
-                    entity.Timeline.Events.Add(new HistoricalEvent(
-                        TemporalResolutionEngine.CurrentYear,
-                        "Extinction Event",
-                        "A mass extinction event occurred — survival uncertain."
-                    ));
-
-                    if (rng.NextDouble() > 0.3f)
-                    {
-                        entity.Timeline.Events.Add(new HistoricalEvent(
-                            TemporalResolutionEngine.CurrentYear,
-                            "Extinction",
-                            "The species has perished before reaching sentience."
-                        ));
-                        return;
-                    }
-                }
-
-                if (species.Cognition >= 1.0f)
-                {
-                    entity.Timeline.Events.Add(new HistoricalEvent(
-                        TemporalResolutionEngine.CurrentYear,
-                        "Sentience",
-                        "A new intelligent species has emerged."
-                    ));
-                    break;
-                }
+                var species = GenerateSpeciesTraits(rng.Next());
+                planet.Traits["species"] = species;
+                planet.Timeline.Events.Add(new HistoricalEvent(
+                    TemporalResolutionEngine.CurrentYear,
+                    "Species Created",
+                    $"A new species has emerged with Cognition: {species.Cognition:F2}."
+                ));
+                Console.WriteLine($"Species created with Cognition: {species.Cognition:F2}");
             }
         }
 
-        private SpeciesTraits GenerateBaseSpecies(int seed)
+        // Check for species extinction
+        if (planet.Traits.ContainsKey("species"))
         {
-            var rng = new Random(seed);
-            return new SpeciesTraits
+            double extinctionRoll = rng.NextDouble();
+            Console.WriteLine($"Extinction roll: {extinctionRoll:F2}");
+            if (extinctionRoll < 0.1) // Increased extinction probability to 10%
             {
-                Form = (SpeciesForm)(rng.Next(Enum.GetValues(typeof(SpeciesForm)).Length)),
-                Lifespan = rng.Next(5, 150),
-                Cognition = (float)(rng.NextDouble() * 0.5),
-                Adaptability = (float)(rng.NextDouble()),
-                Sociality = (float)(rng.NextDouble()),
-                Resilience = (float)(rng.NextDouble() * 0.9 + 0.1f)
-            };
+                planet.Traits.Remove("species");
+                planet.Timeline.Events.Add(new HistoricalEvent(
+                    TemporalResolutionEngine.CurrentYear,
+                    "Species Extinct",
+                    "A species has gone extinct."
+                ));
+                Console.WriteLine("A species has gone extinct.");
+            }
         }
+
+        // Check for species consciousness
+        if (planet.Traits.ContainsKey("species"))
+        {
+            var species = (SpeciesTraits)planet.Traits["species"];
+
+            // Gradually increase Cognition over time
+            species.Cognition += (float)(0.01 * normalizedAge); // Increase Cognition based on universe age
+            species.Cognition = Math.Min(1.0f, species.Cognition); // Cap at 1.0
+            Console.WriteLine($"Updated Cognition: {species.Cognition:F2}");
+
+            if (species.Cognition > 0.9f && !planet.Traits.ContainsKey("conscious"))
+            {
+                planet.Traits["conscious"] = true;
+                planet.Timeline.Events.Add(new HistoricalEvent(
+                    TemporalResolutionEngine.CurrentYear,
+                    "Consciousness Achieved",
+                    "A species has reached consciousness."
+                ));
+                Console.WriteLine("A species has reached consciousness.");
+            }
+        }
+    }
+
+    public static SpeciesTraits GenerateSpeciesTraits(int seed)
+    {
+        var rng = new Random(seed);
+
+        return new SpeciesTraits
+        {
+            Form = (SpeciesForm)(rng.Next(Enum.GetValues(typeof(SpeciesForm)).Length)),
+            Lifespan = rng.Next(5, 150),
+            Cognition = (float)(rng.NextDouble() * 0.5), // Start with lower Cognition
+            Adaptability = (float)(rng.NextDouble()),
+            Sociality = (float)(rng.NextDouble()),
+            Resilience = (float)(rng.NextDouble() * 0.9 + 0.1f)
+        };
     }
 }

@@ -1,4 +1,6 @@
 ﻿using NinjaVerse.Core;
+using NinjaVerse.Core.Enums;
+using NinjaVerse.Core.Models;
 using System;
 
 public class GalaxyTraits
@@ -9,59 +11,20 @@ public class GalaxyTraits
     public int SystemSeedsGenerated = 0;
 }
 
-public class GalaxySimulator : ITemporalSimulator
+public class GalaxySimulator
 {
-    public void Simulate(SimEntity entity, int years)
+    public void Simulate(SimEntity galaxy, float normalizedAge, CosmicFate fate)
     {
-        if (entity.Type != SimType.Galaxy) return;
+        float deathProbability = UniverseCalculator.CalculateGalaxyDeathProbability(normalizedAge, fate);
 
-        GalaxyTraits traits;
-        if (!entity.Traits.TryGetValue("traits", out var raw) || !(raw is GalaxyTraits))
+        // Determine if the galaxy dies
+        if (new Random().NextDouble() < deathProbability)
         {
-            traits = new GalaxyTraits();
-            entity.Traits["traits"] = traits;
+            galaxy.Traits["status"] = "dead";
         }
-        else traits = (GalaxyTraits)raw;
-
-        var rng = new Random(entity.Seed);
-
-        for (int y = 0; y < years; y++)
+        else
         {
-            traits.Age++;
-
-            // Random chance to form new stars in batches
-            if (rng.NextDouble() < 0.01)
-            {
-                int newStars = rng.Next(1000, 100000);
-                traits.StarCount += newStars;
-                entity.Timeline.Events.Add(new HistoricalEvent(
-                    TemporalResolutionEngine.CurrentYear + y,
-                    "Star Formation",
-                    $"{newStars} stars formed. Total: {traits.StarCount}"
-                ));
-            }
-
-            // Rare cosmic event
-            if (rng.NextDouble() < 0.0005)
-            {
-                traits.BlackHoleEvents++;
-                entity.Timeline.Events.Add(new HistoricalEvent(
-                    TemporalResolutionEngine.CurrentYear + y,
-                    "Black Hole",
-                    "A supermassive black hole destabilized part of the galaxy."
-                ));
-            }
-
-            // Seeding star systems
-            if (traits.StarCount > 0 && rng.NextDouble() < 0.02)
-            {
-                traits.SystemSeedsGenerated++;
-                entity.Timeline.Events.Add(new HistoricalEvent(
-                    TemporalResolutionEngine.CurrentYear + y,
-                    "System Seed",
-                    "New star system ready for simulation."
-                ));
-            }
+            galaxy.Traits["status"] = "alive";
         }
     }
 }

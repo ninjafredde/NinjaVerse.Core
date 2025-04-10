@@ -41,10 +41,21 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Enums\CivilizationStage.cs" />
+    <Compile Include="Enums\CosmicFate.cs" />
+    <Compile Include="Enums\GovernmentType.cs" />
+    <Compile Include="Enums\SimType.cs" />
+    <Compile Include="Enums\SocialClass.cs" />
+    <Compile Include="Enums\SpeciesForm.cs" />
+    <Compile Include="Models\SimEntity.cs" />
+    <Compile Include="Models\HistoricalEvent.cs" />
+    <Compile Include="Models\TemporalResolutionEngine.cs" />
+    <Compile Include="Models\TimelineData.cs" />
+    <Compile Include="Models\UniverseCalculator.cs" />
     <Compile Include="Simulators\CivilizationSimulator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SimulationCore.cs" />
     <Compile Include="Simulators\GalaxySimulator.cs" />
+    <Compile Include="Simulators\ITemporalSimulator.cs" />
     <Compile Include="Simulators\PlanetSimulator.cs" />
     <Compile Include="Simulators\StarSystemSimulator.cs" />
     <Compile Include="Simulators\UniverseSimulator.cs" />

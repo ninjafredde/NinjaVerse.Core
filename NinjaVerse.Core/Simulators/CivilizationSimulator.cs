@@ -1,24 +1,16 @@
 using System;
 using NinjaVerse.Core;
+using NinjaVerse.Core.Enums;
+using NinjaVerse.Core.Models;
 
-namespace NinjaVerse.Core
-{
-    public enum CivilizationEpoch
-    {
-        Primitive,
-        Agrarian,
-        Industrial,
-        Information,
-        Spacefaring,
-        Singularity,
-        PostSingularity
-    }
 
-    public class CivilizationTraits
+public class CivilizationTraits
     {
-        public CivilizationEpoch Epoch = CivilizationEpoch.Primitive;
         public int Age = 0;
         public int Population = 1000;
+        public GovernmentType Government;
+        public float TechnologyLevel;
+        public CivilizationStage Stage = CivilizationStage.Primitive;
         public int TechLevel = 0;
         public float Stability = 1f;
         public float Knowledge = 0f;
@@ -26,83 +18,52 @@ namespace NinjaVerse.Core
 
     public class CivilizationSimulator : ITemporalSimulator
     {
-        public void Simulate(SimEntity entity, int years)
+
+    public override void Simulate(SimEntity entity, float normalizedAge)
+    {
+        // Use normalizedAge to scale growth rates
+        double growthRate = 0.02 * normalizedAge; // Scale population growth by normalized age
+        double techGrowthRate = 0.05 * normalizedAge; // Scale tech growth by normalized age
+
+        // Other logic remains the same
+    }
+    private void DetermineCivilizationStage(CivilizationTraits traits, SimEntity entity)
+    {
+        var year = TemporalResolutionEngine.CurrentYear;
+        if (traits.TechnologyLevel >= 120)
         {
-            if (entity.Type != SimType.Civilization) return;
-
-            CivilizationTraits traits;
-            if (!entity.Traits.TryGetValue("traits", out var raw) || !(raw is CivilizationTraits))
-            {
-                traits = new CivilizationTraits();
-                entity.Traits["traits"] = traits;
-            }
-            else traits = (CivilizationTraits)raw;
-
-            for (int y = 0; y < years; y++)
-            {
-                traits.Age++;
-                traits.Population += 10;
-                traits.TechLevel += 1;
-                traits.Knowledge += 0.5f;
-
-                TryAdvanceEpoch(traits, entity);
-            }
-
-            entity.Timeline.Events.Add(new HistoricalEvent(
-                TemporalResolutionEngine.CurrentYear + years,
-                "Simulation",
-                $"Civ aged {years}y, Epoch: {traits.Epoch}, Pop: {traits.Population}, Tech: {traits.TechLevel}"
-            ));
+            traits.Stage = CivilizationStage.PostSingularity;
+            entity.Timeline.Events.Add(new HistoricalEvent(year, "Epoch Shift", "Civ transcends biology. Post-human era begins."));
         }
-
-        void TryAdvanceEpoch(CivilizationTraits traits, SimEntity entity)
+        else if (traits.TechnologyLevel >= 100)
         {
-            var year = TemporalResolutionEngine.CurrentYear;
-            switch (traits.Epoch)
-            {
-                case CivilizationEpoch.Primitive:
-                    if (traits.TechLevel >= 10)
-                    {
-                        traits.Epoch = CivilizationEpoch.Agrarian;
-                        entity.Timeline.Events.Add(new HistoricalEvent(year, "Epoch Shift", "Agrarian society emerges."));
-                    }
-                    break;
-                case CivilizationEpoch.Agrarian:
-                    if (traits.TechLevel >= 30)
-                    {
-                        traits.Epoch = CivilizationEpoch.Industrial;
-                        entity.Timeline.Events.Add(new HistoricalEvent(year, "Epoch Shift", "Industrialization begins."));
-                    }
-                    break;
-                case CivilizationEpoch.Industrial:
-                    if (traits.TechLevel >= 50)
-                    {
-                        traits.Epoch = CivilizationEpoch.Information;
-                        entity.Timeline.Events.Add(new HistoricalEvent(year, "Epoch Shift", "Digital revolution takes hold."));
-                    }
-                    break;
-                case CivilizationEpoch.Information:
-                    if (traits.TechLevel >= 75)
-                    {
-                        traits.Epoch = CivilizationEpoch.Spacefaring;
-                        entity.Timeline.Events.Add(new HistoricalEvent(year, "Epoch Shift", "Civilization ventures into space."));
-                    }
-                    break;
-                case CivilizationEpoch.Spacefaring:
-                    if (traits.TechLevel >= 100)
-                    {
-                        traits.Epoch = CivilizationEpoch.Singularity;
-                        entity.Timeline.Events.Add(new HistoricalEvent(year, "Epoch Shift", "Singularity reached. Tech merges with mind."));
-                    }
-                    break;
-                case CivilizationEpoch.Singularity:
-                    if (traits.TechLevel >= 120)
-                    {
-                        traits.Epoch = CivilizationEpoch.PostSingularity;
-                        entity.Timeline.Events.Add(new HistoricalEvent(year, "Epoch Shift", "Civ transcends biology. Post-human era begins."));
-                    }
-                    break;
-            }
+            traits.Stage = CivilizationStage.Singularity;
+            entity.Timeline.Events.Add(new HistoricalEvent(year, "Epoch Shift", "Singularity reached. Tech merges with mind."));
+        }
+        else if (traits.TechnologyLevel >= 75)
+        {
+            traits.Stage = CivilizationStage.Spacefaring;
+            entity.Timeline.Events.Add(new HistoricalEvent(year, "Epoch Shift", "Civilization ventures into space."));
+        }
+        else if (traits.TechnologyLevel >= 50)
+        {
+            traits.Stage = CivilizationStage.Information;
+            entity.Timeline.Events.Add(new HistoricalEvent(year, "Epoch Shift", "Digital revolution takes hold."));
+        }
+        else if (traits.TechnologyLevel >= 30)
+        {
+            traits.Stage = CivilizationStage.Industrial;
+            entity.Timeline.Events.Add(new HistoricalEvent(year, "Epoch Shift", "Industrialization begins."));
+        }
+        else if (traits.TechnologyLevel >= 10)
+        {
+            traits.Stage = CivilizationStage.Agrarian;
+            entity.Timeline.Events.Add(new HistoricalEvent(year, "Epoch Shift", "Agrarian society emerges."));
+        }
+        else
+        {
+            traits.Stage = CivilizationStage.Primitive;
         }
     }
+
 }

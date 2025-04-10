@@ -1,58 +1,30 @@
 ﻿using System;
-
-namespace NinjaVerse.Core
+using NinjaVerse.Core;
+using NinjaVerse.Core.Enums;
+using NinjaVerse.Core.Models;
+public class StarSystemTraits
 {
-    public class StarSystemTraits
-    {
-        public int Age = 0;
-        public int StarCount = 1;
-        public int PlanetCount = 0;
-        public int HabitablePlanets = 0;
-        public int PlanetSeedsGenerated = 0;
-    }
+    public int Age = 0;
+    public int StarCount = 1;
+    public int PlanetCount = 0;
+    public int HabitablePlanets = 0;
+    public int PlanetSeedsGenerated = 0;
+}
 
-    public class StarSystemSimulator : ITemporalSimulator
+public class StarSystemSimulator
+{
+    public void Simulate(SimEntity starSystem, float normalizedAge, CosmicFate fate)
     {
-        public void Simulate(SimEntity entity, int years)
+        float deathProbability = UniverseCalculator.CalculateStarDeathProbability(normalizedAge, fate);
+
+        // Determine if the star system dies
+        if (new Random().NextDouble() < deathProbability)
         {
-            if (entity.Type != SimType.StarSystem) return;
-
-            StarSystemTraits traits;
-            object raw;
-            if (!entity.Traits.TryGetValue("traits", out raw) || !(raw is StarSystemTraits))
-            {
-                traits = new StarSystemTraits();
-                entity.Traits["traits"] = traits;
-            }
-            else
-            {
-                traits = (StarSystemTraits)raw;
-            }
-
-            Random rng = new Random(entity.Seed);
-
-            for (int y = 0; y < years; y++)
-            {
-                traits.Age++;
-
-                // Form a planet
-                if (traits.PlanetCount < 12 && rng.NextDouble() < 0.2)
-                {
-                    traits.PlanetCount++;
-
-                    bool habitable = rng.NextDouble() < 0.15;
-                    if (habitable)
-                        traits.HabitablePlanets++;
-
-                    traits.PlanetSeedsGenerated++;
-
-                    entity.Timeline.Events.Add(new HistoricalEvent(
-                        TemporalResolutionEngine.CurrentYear + y,
-                        "Planet Formed",
-                        habitable ? "A potentially habitable planet formed." : "A rocky or gaseous planet formed."
-                    ));
-                }
-            }
+            starSystem.Traits["status"] = "dark";
+        }
+        else
+        {
+            starSystem.Traits["status"] = "active";
         }
     }
 }
