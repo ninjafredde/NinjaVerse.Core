@@ -26,6 +26,19 @@ flowchart TD
 
 The core is a plain C# library with no engine dependencies, so it can be dropped into Unity, Godot (.NET) or a console app.
 
+## Try it: Light Cone prototype
+
+**▶ [Open the Light Cone prototype](https://ninjafredde.github.io/NinjaVerse.Core/prototypes/lightcone/)**. It runs in the browser as a single HTML file with no dependencies ([source](prototypes/lightcone/index.html)).
+
+A 2D toy built around the core idea, that distance and time are the same dial:
+
+- **Space gears** go from Stellar (~100 AU) up to Horizon (tens of billions of light-years). Each gear also sets the time gear, so the **Light** gear means light crosses the view in about 10 s, and the **Motion** gear means things cross it at their typical speed. Typical speeds are nearly the same at every scale (~c/10,000 to ~c/300), which is why each gear looks about equally alive.
+- **Light cone:** you see everything as it was when its light left it. Distant things look younger, and at the Horizon gear you hit first light.
+- **Out-running light:** move faster than c and objects ahead play fast-forward while objects behind play **backwards**. Fly to an object and the trip replays exactly its last *distance ÷ c* years.
+- **The universe** is a multiplicative cascade from a single seed. Mass is conserved at every zoom level, it stores nothing, and every location is just a path of child indices.
+
+Toy assumptions: flat 2D, static space (no expansion yet), c = 1 ly/yr.
+
 ## Repository layout
 
 | Folder | What it is |
@@ -34,6 +47,7 @@ The core is a plain C# library with no engine dependencies, so it can be dropped
 | `NinjaVerse.Core/Modules/` | One simulator per level: Universe, Galaxy, StarSystem, Planet, Species, Civilization, NPC |
 | `NinjaVerse.Core/Observer/` | Observation context and entity cache |
 | `NinjaVerse.App/` | Console demo: a universe, then a planet's species, then a civilization, with printed timelines |
+| `prototypes/lightcone/` | Browser prototype of the observer: gears, light cone and cascade universe |
 | `NinjaVerse.Unity/` | Unity 6 (6000.0.38f1) test project using the built DLL from `Assets/Plugins/` |
 
 ## Running it
